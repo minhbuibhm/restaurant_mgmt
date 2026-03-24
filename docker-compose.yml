@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: irms_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: irms_user
+      POSTGRES_PASSWORD: irms_password
+      POSTGRES_DB: irms_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: irms_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://irms_user:irms_password@db:5432/irms_db
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

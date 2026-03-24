@@ -1,0 +1,27 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+.venv
+.pytest_cache
+.coverage
+htmlcov
+
+# Environment
+.env
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docs
+*.md
+!requirements.md
