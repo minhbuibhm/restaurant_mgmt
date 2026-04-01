@@ -24,4 +24,4 @@ Thumbs.db
 
 # Docs
 *.md
-!requirements.md
+!docs/requirements.md

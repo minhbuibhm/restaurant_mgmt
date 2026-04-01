@@ -71,7 +71,7 @@ All project documents are in `docs/`:
 - `test-guide.md` — Test cases with curl commands and expected results
 - `reflection-report.md` — SOLID principles reflection report
 
-The assignment requirements are in `requirements.md` at the project root.
+The assignment requirements are in `docs/requirements.md` at the project root.
 
 ## Tech Stack
 
