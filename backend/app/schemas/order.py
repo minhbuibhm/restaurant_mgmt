@@ -27,6 +27,10 @@ class OrderItemResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class OrderStatusUpdate(BaseModel):
+    status: OrderStatus
+
+
 class OrderResponse(BaseModel):
     id: int
     table_id: int

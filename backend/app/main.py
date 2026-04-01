@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from app.config import settings
 from app.database import engine, Base
-from app.routers import tables, menu, orders, inventory, dashboard
+from app.routers import tables, menu, orders, kitchen, inventory, dashboard
 
 
 @asynccontextmanager
@@ -19,6 +19,7 @@ app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
 app.include_router(tables.router, prefix="/api")
 app.include_router(menu.router, prefix="/api")
 app.include_router(orders.router, prefix="/api")
+app.include_router(kitchen.router, prefix="/api")
 app.include_router(inventory.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 
