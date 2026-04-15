@@ -144,9 +144,49 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
+### Applying Code Changes
+
+The Dockerfile uses `COPY . .` at build time — source code is baked into the image. After modifying any Python file, **rebuild** the backend image, not just restart:
+
+```bash
+docker compose up -d --build backend
+```
+
+A plain `docker compose restart backend` will reuse the stale image and your changes won't take effect.
+
 ### Database Initialization
 
 The database tables are **automatically created** on application startup via SQLAlchemy's `Base.metadata.create_all` in the `lifespan` handler (`app/main.py`). No manual migration step is needed for the initial setup.
+
+### Seed Data
+
+Sample seed data is **automatically loaded** on first startup (when the database is empty) by `app/seed.py`, called from the lifespan handler. The seeder is idempotent — if any data already exists, it skips and leaves the DB untouched.
+
+Seeded content:
+- 3 categories: `main`, `drink`, `dessert`
+- 6 menu items with `image_url` populated (see below)
+- 5 tables (numbers 1–5)
+
+#### Menu Item Image URLs
+
+Images are hosted externally on [TheMealDB](https://www.themealdb.com) and [TheCocktailDB](https://www.thecocktaildb.com) — free public food/drink image databases, no API key needed. If any URL breaks, replace it in `app/seed.py`.
+
+| Menu Item | Source Dish (TheMealDB/CocktailDB) | URL |
+|-----------|-----------------------------------|-----|
+| Grilled Salmon | Baked salmon with fennel & tomatoes | https://www.themealdb.com/images/media/meals/1548772327.jpg |
+| Beef Steak | Steak Diane | https://www.themealdb.com/images/media/meals/vussxq1511882648.jpg |
+| Caesar Salad | Chicken Quinoa Greek Salad (closest match) | https://www.themealdb.com/images/media/meals/k29viq1585565980.jpg |
+| Lemonade | New York Lemonade | https://www.thecocktaildb.com/images/media/drink/b3n0ge1503565473.jpg |
+| Iced Coffee | Iced Coffee | https://www.thecocktaildb.com/images/media/drink/ytprxy1454513855.jpg |
+| Tiramisu | Budino Di Ricotta (Italian dessert substitute) | https://www.themealdb.com/images/media/meals/1549542877.jpg |
+
+To re-seed from scratch, wipe the DB volume and restart:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
 
 Database connection is configured in `.env`:
 
