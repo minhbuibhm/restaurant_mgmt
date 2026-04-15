@@ -2,10 +2,16 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.dependencies import require_role
+from app.models.user import UserRole
 from app.schemas.kitchen import KitchenQueueItem, KitchenItemStatusUpdate, StationLoad
 from app.services import kitchen_service
 
-router = APIRouter(prefix="/kitchen", tags=["kitchen"])
+router = APIRouter(
+    prefix="/kitchen",
+    tags=["kitchen"],
+    dependencies=[Depends(require_role(UserRole.CHEF, UserRole.MANAGER))],
+)
 
 
 @router.get("/queue", response_model=list[KitchenQueueItem])

@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import async_session
 from app.models.menu import Category, MenuItem
 from app.models.table import Table
+from app.models.user import User, UserRole
+from app.services.auth_service import hash_password
 
 
 async def seed_if_empty() -> None:
@@ -55,4 +57,14 @@ async def _seed(db: AsyncSession) -> None:
         Table(number=3, capacity=4),
         Table(number=4, capacity=6),
         Table(number=5, capacity=8),
+    ])
+
+    # Users — password is the same as username for easy testing (dev only)
+    db.add_all([
+        User(username="manager", hashed_password=hash_password("manager"),
+             full_name="Alice Manager", role=UserRole.MANAGER),
+        User(username="chef", hashed_password=hash_password("chef"),
+             full_name="Bob Chef", role=UserRole.CHEF),
+        User(username="waiter", hashed_password=hash_password("waiter"),
+             full_name="Carol Waiter", role=UserRole.WAITER),
     ])
