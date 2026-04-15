@@ -166,6 +166,15 @@ Seeded content:
 - 3 categories: `main`, `drink`, `dessert`
 - 6 menu items with `image_url` populated (see below)
 - 5 tables (numbers 1–5)
+- 3 staff users (for testing role-based access):
+
+  | Username | Password | Role | Can do |
+  |----------|----------|------|--------|
+  | `manager` | `manager` | MANAGER | Everything (menu/table CRUD, order/kitchen ops, cancel) |
+  | `chef` | `chef` | CHEF | View kitchen queue, update item cooking status |
+  | `waiter` | `waiter` | WAITER | Confirm/serve orders, update table status |
+
+  Passwords match usernames for easy local testing — change in `app/seed.py` before production.
 
 #### Menu Item Image URLs
 
@@ -198,27 +207,32 @@ When running via Docker Compose, the backend container uses `db` as the hostname
 
 ### Verify It Works
 
-After startup, run a quick smoke test to verify the full Order→Kitchen flow:
+After startup (seed data already loaded), run a quick smoke test covering auth and the full Order→Kitchen flow:
 
 ```bash
 BASE=http://localhost:8000/api
 
-# Seed data
-curl -s -X POST $BASE/menu/categories -H 'Content-Type: application/json' -d '{"name":"main"}'
-curl -s -X POST $BASE/menu/items -H 'Content-Type: application/json' -d '{"name":"Salmon","price":15.5,"category_id":1,"prep_time_minutes":20}'
-curl -s -X POST $BASE/tables/ -H 'Content-Type: application/json' -d '{"number":1,"capacity":4}'
+# 1. Login (waiter confirms orders, chef cooks)
+WAITER=$(curl -s -X POST $BASE/auth/login -d "username=waiter&password=waiter" | python -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
+CHEF=$(curl -s -X POST $BASE/auth/login -d "username=chef&password=chef" | python -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
 
-# Place & confirm order
-curl -s -X POST $BASE/orders/ -H 'Content-Type: application/json' -d '{"table_id":1,"items":[{"menu_item_id":1,"quantity":2}]}'
-curl -s -X PATCH $BASE/orders/1/status -H 'Content-Type: application/json' -d '{"status":"confirmed"}'
+# 2. Customer places order (public endpoint, no auth)
+curl -s -X POST $BASE/orders/ -H 'Content-Type: application/json' \
+  -d '{"table_id":1,"items":[{"menu_item_id":1,"quantity":2}]}'
 
-# Kitchen: cook & finish
-curl -s $BASE/kitchen/queue                                                                          # should show item
-curl -s -X PATCH $BASE/kitchen/items/1/status -H 'Content-Type: application/json' -d '{"status":"cooking"}'
-curl -s -X PATCH $BASE/kitchen/items/1/status -H 'Content-Type: application/json' -d '{"status":"done"}'
+# 3. Waiter confirms order
+curl -s -X PATCH $BASE/orders/1/status -H "Authorization: Bearer $WAITER" \
+  -H 'Content-Type: application/json' -d '{"status":"confirmed"}'
 
-# Verify order is auto-ready
-curl -s $BASE/orders/1    # status: "ready"
+# 4. Chef views kitchen queue, cooks & finishes
+curl -s $BASE/kitchen/queue -H "Authorization: Bearer $CHEF"
+curl -s -X PATCH $BASE/kitchen/items/1/status -H "Authorization: Bearer $CHEF" \
+  -H 'Content-Type: application/json' -d '{"status":"cooking"}'
+curl -s -X PATCH $BASE/kitchen/items/1/status -H "Authorization: Bearer $CHEF" \
+  -H 'Content-Type: application/json' -d '{"status":"done"}'
+
+# 5. Verify order auto-advanced to "ready"
+curl -s $BASE/orders/1
 ```
 
 For the full test suite with all test cases and expected results, see `docs/test-guide.md`.

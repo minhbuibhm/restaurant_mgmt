@@ -73,6 +73,17 @@ When a chef marks all items as `done`, the parent order should automatically bec
 
 Defining a fixed scoring formula risks violating OCP when new business requirements arrive. We chose a weighted-sum approach with named constants (`WEIGHT_WAIT_TIME`, `WEIGHT_COMPLEXITY`, `WEIGHT_STATION_LOAD`), making it straightforward to add new terms without restructuring the function.
 
+### 4. Authentication & Role-Based Access
+
+Different staff (waiter, chef, manager) need different permissions, but we didn't want authentication concerns to leak into every router function or tangle with business logic in services.
+
+**Solution:** A dependency factory `require_role(*allowed)` returns a FastAPI dependency that can be attached to any endpoint or router declaratively. This has direct SOLID benefits:
+
+- **SRP:** `auth_service.py` owns password hashing and JWT logic. `dependencies.py` owns the authorization check. Routers stay HTTP-only, services stay auth-free.
+- **OCP:** Adding a new role (e.g., `CASHIER`) means adding an enum value and using it in `require_role(...)` — no existing guards need modification.
+- **DIP:** Routers depend on the `require_role` abstraction, not on low-level JWT decoding. The auth mechanism could swap to sessions/OAuth without touching the routers.
+- **ISP:** Each endpoint declares only the roles it actually needs (e.g., kitchen endpoints declare `CHEF, MANAGER` — they don't depend on a monolithic "is authorized" check).
+
 ---
 
 ## Conclusion

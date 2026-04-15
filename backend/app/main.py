@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.routers import tables, menu, orders, kitchen, inventory, dashboard
+from app.routers import auth, tables, menu, orders, kitchen, inventory, dashboard
 from app.seed import seed_if_empty
 
 
@@ -27,6 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router, prefix="/api")
 app.include_router(tables.router, prefix="/api")
 app.include_router(menu.router, prefix="/api")
 app.include_router(orders.router, prefix="/api")

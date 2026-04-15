@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.dependencies import require_role
 from app.models.order import OrderStatus
+from app.models.user import UserRole
 from app.schemas.order import OrderCreate, OrderResponse, OrderStatusUpdate
 from app.services import order_service
 
@@ -29,7 +31,11 @@ async def get_order(order_id: int, db: AsyncSession = Depends(get_db)):
     return await order_service.get_order(order_id, db)
 
 
-@router.patch("/{order_id}/status", response_model=OrderResponse)
+@router.patch(
+    "/{order_id}/status",
+    response_model=OrderResponse,
+    dependencies=[Depends(require_role(UserRole.WAITER, UserRole.MANAGER))],
+)
 async def update_order_status(
     order_id: int,
     data: OrderStatusUpdate,
@@ -38,6 +44,10 @@ async def update_order_status(
     return await order_service.update_order_status(order_id, data.status, db)
 
 
-@router.post("/{order_id}/cancel", response_model=OrderResponse)
+@router.post(
+    "/{order_id}/cancel",
+    response_model=OrderResponse,
+    dependencies=[Depends(require_role(UserRole.MANAGER))],
+)
 async def cancel_order(order_id: int, db: AsyncSession = Depends(get_db)):
     return await order_service.cancel_order(order_id, db)

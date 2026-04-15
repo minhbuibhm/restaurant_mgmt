@@ -17,6 +17,48 @@ Real-time updates (KDS refresh, order status changes) are delivered via **WebSoc
 
 ---
 
+## Authentication & Authorization
+
+Staff endpoints require a JWT obtained via `POST /api/auth/login`. Customer endpoints (browsing menu, placing orders) are public because customers order via QR code without accounts.
+
+### Login
+
+`POST /api/auth/login` — form-encoded body (OAuth2 password flow)
+
+Request: `username=<u>&password=<p>` (Content-Type: `application/x-www-form-urlencoded`)
+
+Response:
+```json
+{
+  "access_token": "eyJhbGci...",
+  "token_type": "bearer",
+  "user": { "id": 2, "username": "chef", "full_name": "Bob Chef", "role": "chef" }
+}
+```
+
+### Using the token
+
+All protected endpoints expect: `Authorization: Bearer <access_token>`
+
+- `401 Unauthorized` — missing/invalid/expired token
+- `403 Forbidden` — valid token but role not allowed
+
+`GET /api/auth/me` — returns the current user (useful for frontend to verify session on load).
+
+### Role → Endpoint matrix
+
+| Endpoint group | Public | Waiter | Chef | Manager |
+|----------------|:------:|:------:|:----:|:-------:|
+| `GET /menu/*`, `GET /tables/*` | ✓ | ✓ | ✓ | ✓ |
+| `POST /orders/`, `GET /orders/*` | ✓ | ✓ | ✓ | ✓ |
+| `PATCH /orders/{id}/status` | — | ✓ | — | ✓ |
+| `POST /orders/{id}/cancel` | — | — | — | ✓ |
+| `PATCH /tables/{id}` | — | ✓ | — | ✓ |
+| `GET /kitchen/*`, `PATCH /kitchen/items/*/status` | — | — | ✓ | ✓ |
+| `POST /menu/*`, `PATCH /menu/*`, `POST /tables/` | — | — | — | ✓ |
+
+---
+
 ## End-to-End Flow & API Mapping
 
 ```

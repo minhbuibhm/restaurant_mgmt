@@ -3,7 +3,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.dependencies import require_role
 from app.models.menu import Category, MenuItem
+from app.models.user import UserRole
 from app.schemas.menu import (
     CategoryCreate, CategoryResponse,
     MenuItemCreate, MenuItemUpdate, MenuItemResponse,
@@ -11,9 +13,11 @@ from app.schemas.menu import (
 
 router = APIRouter(prefix="/menu", tags=["menu"])
 
+MANAGER_ONLY = [Depends(require_role(UserRole.MANAGER))]
+
 # ── Categories ──
 
-@router.post("/categories", response_model=CategoryResponse, status_code=201)
+@router.post("/categories", response_model=CategoryResponse, status_code=201, dependencies=MANAGER_ONLY)
 async def create_category(data: CategoryCreate, db: AsyncSession = Depends(get_db)):
     category = Category(**data.model_dump())
     db.add(category)
@@ -30,7 +34,7 @@ async def list_categories(db: AsyncSession = Depends(get_db)):
 
 # ── Menu Items ──
 
-@router.post("/items", response_model=MenuItemResponse, status_code=201)
+@router.post("/items", response_model=MenuItemResponse, status_code=201, dependencies=MANAGER_ONLY)
 async def create_menu_item(data: MenuItemCreate, db: AsyncSession = Depends(get_db)):
     category = await db.get(Category, data.category_id)
     if not category:
@@ -65,7 +69,7 @@ async def get_menu_item(item_id: int, db: AsyncSession = Depends(get_db)):
     return item
 
 
-@router.patch("/items/{item_id}", response_model=MenuItemResponse)
+@router.patch("/items/{item_id}", response_model=MenuItemResponse, dependencies=MANAGER_ONLY)
 async def update_menu_item(item_id: int, data: MenuItemUpdate, db: AsyncSession = Depends(get_db)):
     item = await db.get(MenuItem, item_id)
     if not item:
