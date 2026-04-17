@@ -71,10 +71,10 @@ async def create_order(data: OrderCreate, db: AsyncSession) -> Order:
 
 
 async def get_order(order_id: int, db: AsyncSession) -> Order:
-    """Fetch order with eager-loaded items."""
+    """Fetch order with eager-loaded items and their menu item details."""
     stmt = (
         select(Order)
-        .options(selectinload(Order.items))
+        .options(selectinload(Order.items).selectinload(OrderItem.menu_item))
         .where(Order.id == order_id)
     )
     result = await db.execute(stmt)
@@ -90,7 +90,7 @@ async def list_orders(
     status: OrderStatus | None = None,
 ) -> list[Order]:
     """List orders with optional filters."""
-    stmt = select(Order).options(selectinload(Order.items))
+    stmt = select(Order).options(selectinload(Order.items).selectinload(OrderItem.menu_item))
     if table_id is not None:
         stmt = stmt.where(Order.table_id == table_id)
     if status is not None:

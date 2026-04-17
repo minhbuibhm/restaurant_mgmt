@@ -3,6 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from app.models.order import OrderStatus, OrderItemStatus
+from app.schemas.menu import MenuItemResponse
 
 
 class OrderItemCreate(BaseModel):
@@ -23,6 +24,7 @@ class OrderItemResponse(BaseModel):
     quantity: int
     status: OrderItemStatus
     notes: str | None
+    menu_item: MenuItemResponse
 
     model_config = {"from_attributes": True}
 
