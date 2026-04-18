@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, String, Float, ForeignKey, Boolean, Text
+from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -11,10 +11,10 @@ class Category(Base):
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    items: Mapped[list["MenuItem"]] = relationship(back_populates="category")
+    items: Mapped[list["Dish"]] = relationship(back_populates="category")
 
 
-class MenuItem(Base):
+class Dish(Base):
     __tablename__ = "menu_items"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -27,3 +27,15 @@ class MenuItem(Base):
     image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     category: Mapped["Category"] = relationship(back_populates="items")
+
+    @property
+    def average_prep_time(self) -> int:
+        return self.prep_time_minutes
+
+    @average_prep_time.setter
+    def average_prep_time(self, value: int) -> None:
+        self.prep_time_minutes = value
+
+
+# Backward-compatible alias for existing routers/schemas and ORM references.
+MenuItem = Dish

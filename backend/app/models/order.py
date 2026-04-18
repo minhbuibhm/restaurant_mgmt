@@ -42,6 +42,41 @@ class Order(Base):
 
     items: Mapped[list["OrderItem"]] = relationship(back_populates="order")
 
+    def add_item(
+        self,
+        dish_id: int,
+        quantity: int = 1,
+        notes: str | None = None,
+        status: "OrderItemStatus" = OrderItemStatus.QUEUED,
+    ) -> "OrderItem":
+        return OrderItem(
+            order_id=self.id,
+            menu_item_id=dish_id,
+            quantity=quantity,
+            notes=notes,
+            status=status,
+        )
+
+    def calculate_total(
+        self,
+        dishes_by_id: dict[int, "Dish"],
+        items: list["OrderItem"] | None = None,
+    ) -> float:
+        source_items = items if items is not None else self.items
+        self.total_amount = sum(
+            dishes_by_id[item.menu_item_id].price * item.quantity
+            for item in source_items
+        )
+        return self.total_amount
+
+    def update_status(self, new_status: OrderStatus) -> None:
+        self.status = new_status
+
+    def cancel_open_items(self) -> None:
+        for item in self.items:
+            if item.status not in (OrderItemStatus.DONE, OrderItemStatus.CANCELLED):
+                item.status = OrderItemStatus.CANCELLED
+
 
 class OrderItem(Base):
     __tablename__ = "order_items"
@@ -56,4 +91,34 @@ class OrderItem(Base):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     order: Mapped["Order"] = relationship(back_populates="items")
-    menu_item: Mapped["MenuItem"] = relationship()
+    menu_item: Mapped["Dish"] = relationship()
+
+    def update_priority(self, score: float) -> float:
+        return score
+
+    def mark_as_completed(self) -> None:
+        self.status = OrderItemStatus.DONE
+
+    @property
+    def customer_note(self) -> str | None:
+        return self.notes
+
+    @customer_note.setter
+    def customer_note(self, value: str | None) -> None:
+        self.notes = value
+
+    @property
+    def dish_id(self) -> int:
+        return self.menu_item_id
+
+    @dish_id.setter
+    def dish_id(self, value: int) -> None:
+        self.menu_item_id = value
+
+    @property
+    def dish(self):
+        return self.menu_item
+
+    @dish.setter
+    def dish(self, value) -> None:
+        self.menu_item = value

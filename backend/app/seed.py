@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import async_session
-from app.models.menu import Category, MenuItem
+from app.models.menu import Category, Dish
 from app.models.table import Table
 from app.models.user import User, UserRole
 from app.services.auth_service import hash_password
@@ -40,23 +40,23 @@ async def _seed(db: AsyncSession) -> None:
     # Menu items
     db.add_all([
         # Khai vi
-        MenuItem(name="Goi cuon",  description="Goi cuon tom thit",           price=45000, category_id=khai_vi.id,    prep_time_minutes=5,  image_url=_IMG["light_food"]),
-        MenuItem(name="Cha gio",   description="Cha gio ran gion",             price=55000, category_id=khai_vi.id,    prep_time_minutes=8,  image_url=_IMG["light_food"]),
-        MenuItem(name="Sup cua",   description="Sup cua bap",                  price=65000, category_id=khai_vi.id,    prep_time_minutes=10, image_url=_IMG["main_food"]),
+        Dish(name="Goi cuon",  description="Goi cuon tom thit",           price=45000, category_id=khai_vi.id,    prep_time_minutes=5,  image_url=_IMG["light_food"]),
+        Dish(name="Cha gio",   description="Cha gio ran gion",             price=55000, category_id=khai_vi.id,    prep_time_minutes=8,  image_url=_IMG["light_food"]),
+        Dish(name="Sup cua",   description="Sup cua bap",                  price=65000, category_id=khai_vi.id,    prep_time_minutes=10, image_url=_IMG["main_food"]),
         # Mon chinh
-        MenuItem(name="Pho bo",         description="Pho bo truyen thong",          price=85000,  category_id=mon_chinh.id, prep_time_minutes=15, image_url=_IMG["main_food"]),
-        MenuItem(name="Com tam suon bi", description="Com tam suon nuong, bi, cha",  price=75000,  category_id=mon_chinh.id, prep_time_minutes=12, image_url=_IMG["main_food"]),
-        MenuItem(name="Bun bo Hue",      description="Bun bo cay dac trung Hue",     price=80000,  category_id=mon_chinh.id, prep_time_minutes=15, image_url=_IMG["main_food"]),
-        MenuItem(name="Bo luc lac",      description="Bo luc lac chien bo",          price=195000, category_id=mon_chinh.id, prep_time_minutes=20, image_url=_IMG["main_food"]),
+        Dish(name="Pho bo",         description="Pho bo truyen thong",          price=85000,  category_id=mon_chinh.id, prep_time_minutes=15, image_url=_IMG["main_food"]),
+        Dish(name="Com tam suon bi", description="Com tam suon nuong, bi, cha",  price=75000,  category_id=mon_chinh.id, prep_time_minutes=12, image_url=_IMG["main_food"]),
+        Dish(name="Bun bo Hue",      description="Bun bo cay dac trung Hue",     price=80000,  category_id=mon_chinh.id, prep_time_minutes=15, image_url=_IMG["main_food"]),
+        Dish(name="Bo luc lac",      description="Bo luc lac chien bo",          price=195000, category_id=mon_chinh.id, prep_time_minutes=20, image_url=_IMG["main_food"]),
         # Do uong
-        MenuItem(name="Ca phe sua da",   description="Ca phe Viet truyen thong",     price=35000, category_id=do_uong.id,    prep_time_minutes=5, image_url=_IMG["iced_coffee"]),
-        MenuItem(name="Tra dao cam sa",  description="Tra dao tuoi mat lanh",        price=45000, category_id=do_uong.id,    prep_time_minutes=5, image_url=_IMG["drink"]),
-        MenuItem(name="Sinh to bo",      description="Sinh to bo tuoi beo ngay",     price=55000, category_id=do_uong.id,    prep_time_minutes=7, image_url=_IMG["drink"]),
-        MenuItem(name="Nuoc chanh muoi", description="Chanh tuoi muoi me",           price=30000, category_id=do_uong.id,    prep_time_minutes=3, image_url=_IMG["drink"]),
+        Dish(name="Ca phe sua da",   description="Ca phe Viet truyen thong",     price=35000, category_id=do_uong.id,    prep_time_minutes=5, image_url=_IMG["iced_coffee"]),
+        Dish(name="Tra dao cam sa",  description="Tra dao tuoi mat lanh",        price=45000, category_id=do_uong.id,    prep_time_minutes=5, image_url=_IMG["drink"]),
+        Dish(name="Sinh to bo",      description="Sinh to bo tuoi beo ngay",     price=55000, category_id=do_uong.id,    prep_time_minutes=7, image_url=_IMG["drink"]),
+        Dish(name="Nuoc chanh muoi", description="Chanh tuoi muoi me",           price=30000, category_id=do_uong.id,    prep_time_minutes=3, image_url=_IMG["drink"]),
         # Trang miem
-        MenuItem(name="Che ba mau",          description="Che ba mau dac trung Nam Bo",   price=35000, category_id=trang_miem.id, prep_time_minutes=5, image_url=_IMG["dessert"]),
-        MenuItem(name="Banh flan ca ra men", description="Banh flan mem min voi ca phe",  price=40000, category_id=trang_miem.id, prep_time_minutes=3, image_url=_IMG["dessert"]),
-        MenuItem(name="Kem dua",             description="Kem dua tuoi that",             price=45000, category_id=trang_miem.id, prep_time_minutes=3, image_url=_IMG["dessert"]),
+        Dish(name="Che ba mau",          description="Che ba mau dac trung Nam Bo",   price=35000, category_id=trang_miem.id, prep_time_minutes=5, image_url=_IMG["dessert"]),
+        Dish(name="Banh flan ca ra men", description="Banh flan mem min voi ca phe",  price=40000, category_id=trang_miem.id, prep_time_minutes=3, image_url=_IMG["dessert"]),
+        Dish(name="Kem dua",             description="Kem dua tuoi that",             price=45000, category_id=trang_miem.id, prep_time_minutes=3, image_url=_IMG["dessert"]),
     ])
 
     # Tables
