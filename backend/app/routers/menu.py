@@ -4,11 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.dependencies import require_role
-from app.models.menu import Category, MenuItem
+from app.models.menu import Category, Dish
 from app.models.user import UserRole
 from app.schemas.menu import (
     CategoryCreate, CategoryResponse,
-    MenuItemCreate, MenuItemUpdate, MenuItemResponse,
+    DishCreate, DishResponse, DishUpdate,
 )
 
 router = APIRouter(prefix="/menu", tags=["menu"])
@@ -34,48 +34,48 @@ async def list_categories(db: AsyncSession = Depends(get_db)):
 
 # ── Menu Items ──
 
-@router.post("/items", response_model=MenuItemResponse, status_code=201, dependencies=MANAGER_ONLY)
-async def create_menu_item(data: MenuItemCreate, db: AsyncSession = Depends(get_db)):
+@router.post("/items", response_model=DishResponse, status_code=201, dependencies=MANAGER_ONLY)
+async def create_dish(data: DishCreate, db: AsyncSession = Depends(get_db)):
     category = await db.get(Category, data.category_id)
     if not category:
         raise HTTPException(status_code=400, detail="Category not found")
-    item = MenuItem(**data.model_dump())
-    db.add(item)
+    dish = Dish(**data.model_dump())
+    db.add(dish)
     await db.commit()
-    await db.refresh(item)
-    return item
+    await db.refresh(dish)
+    return dish
 
 
-@router.get("/items", response_model=list[MenuItemResponse])
-async def list_menu_items(
+@router.get("/items", response_model=list[DishResponse])
+async def list_dishes(
     category_id: int | None = Query(None),
     available: bool | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(MenuItem)
+    stmt = select(Dish)
     if category_id is not None:
-        stmt = stmt.where(MenuItem.category_id == category_id)
+        stmt = stmt.where(Dish.category_id == category_id)
     if available is not None:
-        stmt = stmt.where(MenuItem.is_available == available)
+        stmt = stmt.where(Dish.is_available == available)
     result = await db.execute(stmt)
     return result.scalars().all()
 
 
-@router.get("/items/{item_id}", response_model=MenuItemResponse)
-async def get_menu_item(item_id: int, db: AsyncSession = Depends(get_db)):
-    item = await db.get(MenuItem, item_id)
-    if not item:
+@router.get("/items/{item_id}", response_model=DishResponse)
+async def get_dish(item_id: int, db: AsyncSession = Depends(get_db)):
+    dish = await db.get(Dish, item_id)
+    if not dish:
         raise HTTPException(status_code=404, detail="Menu item not found")
-    return item
+    return dish
 
 
-@router.patch("/items/{item_id}", response_model=MenuItemResponse, dependencies=MANAGER_ONLY)
-async def update_menu_item(item_id: int, data: MenuItemUpdate, db: AsyncSession = Depends(get_db)):
-    item = await db.get(MenuItem, item_id)
-    if not item:
+@router.patch("/items/{item_id}", response_model=DishResponse, dependencies=MANAGER_ONLY)
+async def update_dish(item_id: int, data: DishUpdate, db: AsyncSession = Depends(get_db)):
+    dish = await db.get(Dish, item_id)
+    if not dish:
         raise HTTPException(status_code=404, detail="Menu item not found")
     for key, value in data.model_dump(exclude_unset=True).items():
-        setattr(item, key, value)
+        setattr(dish, key, value)
     await db.commit()
-    await db.refresh(item)
-    return item
+    await db.refresh(dish)
+    return dish
